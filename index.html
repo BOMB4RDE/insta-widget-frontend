@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+body { margin:0; background:#f5f5f5; font-family:sans-serif; }
+
+.grid {
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+  padding:10px;
+}
+
+.post {
+  aspect-ratio:1;
+  border-radius:12px;
+  overflow:hidden;
+}
+
+img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+
+/* carousel */
+.carousel { position:relative; height:100%; }
+
+.track {
+  display:flex;
+  height:100%;
+  transition:0.3s;
+}
+
+.track img { min-width:100%; }
+
+.btn {
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  background:black;
+  color:white;
+  border:none;
+  width:30px;
+  height:30px;
+  display:none;
+  cursor:pointer;
+}
+
+.carousel:hover .btn { display:block; }
+
+.left { left:5px; }
+.right { right:5px; }
+</style>
+</head>
+
+<body>
+
+<div id="grid" class="grid"></div>
+
+<script>
+
+const API_URL = "https://instapreviewtoolv2.vercel.app/api/posts";
+
+async function load(){
+
+  try {
+    const res = await fetch(API_URL);
+    const posts = await res.json();
+
+    const grid = document.getElementById("grid");
+
+    posts.forEach(post => {
+
+      const div = document.createElement("div");
+      div.className = "post";
+
+      if(post.media.length > 1){
+
+        div.innerHTML = `
+          <div class="carousel">
+            <div class="track">
+              ${post.media.map(m=>`<img src="${m}">`).join("")}
+            </div>
+            <button class="btn left">‹</button>
+            <button class="btn right">›</button>
+          </div>
+        `;
+
+        const track = div.querySelector(".track");
+        let i = 0;
+
+        div.querySelector(".left").onclick = e=>{
+          e.stopPropagation();
+          i = Math.max(0, i-1);
+          track.style.transform = `translateX(-${i*100}%)`;
+        };
+
+        div.querySelector(".right").onclick = e=>{
+          e.stopPropagation();
+          i = Math.min(post.media.length-1, i+1);
+          track.style.transform = `translateX(-${i*100}%)`;
+        };
+
+      } else {
+        div.innerHTML = `<img src="${post.media[0]}">`;
+      }
+
+      grid.appendChild(div);
+
+    });
+
+  } catch(e){
+    document.body.innerHTML = "❌ Erreur chargement API";
+    console.error(e);
+  }
+
+}
+
+load();
+
+</script>
+
+</body>
+</html>
