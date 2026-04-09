@@ -3,122 +3,161 @@
 <head>
 <meta charset="UTF-8">
 <style>
-body { margin:0; background:#f5f5f5; font-family:sans-serif; }
+body {
+  margin: 0;
+  background: #f5f5f5;
+  font-family: sans-serif;
+}
 
 .grid {
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:8px;
-  padding:10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  padding: 10px;
 }
 
 .post {
-  aspect-ratio:1;
-  border-radius:12px;
-  overflow:hidden;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #ddd;
+  position: relative;
 }
 
 img {
-  width:100%;
-  height:100%;
-  object-fit:cover;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* carousel */
-.carousel { position:relative; height:100%; }
+.carousel {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
 
 .track {
-  display:flex;
-  height:100%;
-  transition:0.3s;
+  display: flex;
+  height: 100%;
+  transition: transform 0.3s ease;
 }
 
-.track img { min-width:100%; }
+.track img {
+  min-width: 100%;
+}
 
+/* buttons */
 .btn {
-  position:absolute;
-  top:50%;
-  transform:translateY(-50%);
-  background:black;
-  color:white;
-  border:none;
-  width:30px;
-  height:30px;
-  display:none;
-  cursor:pointer;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.6);
+  color: white;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: none;
+  cursor: pointer;
 }
 
-.carousel:hover .btn { display:block; }
+.carousel:hover .btn {
+  display: block;
+}
 
-.left { left:5px; }
-.right { right:5px; }
+.left { left: 5px; }
+.right { right: 5px; }
+
 </style>
 </head>
 
 <body>
 
-<div id="grid" class="grid"></div>
+<div class="grid" id="grid"></div>
 
 <script>
 
-const API_URL = "https://instapreviewtoolv2.vercel.app/api/posts";
-
-async function load(){
-
-  try {
-    const res = await fetch(API_URL);
-    const posts = await res.json();
-
-    const grid = document.getElementById("grid");
-
-    posts.forEach(post => {
-
-      const div = document.createElement("div");
-      div.className = "post";
-
-      if(post.media.length > 1){
-
-        div.innerHTML = `
-          <div class="carousel">
-            <div class="track">
-              ${post.media.map(m=>`<img src="${m}">`).join("")}
-            </div>
-            <button class="btn left">‹</button>
-            <button class="btn right">›</button>
-          </div>
-        `;
-
-        const track = div.querySelector(".track");
-        let i = 0;
-
-        div.querySelector(".left").onclick = e=>{
-          e.stopPropagation();
-          i = Math.max(0, i-1);
-          track.style.transform = `translateX(-${i*100}%)`;
-        };
-
-        div.querySelector(".right").onclick = e=>{
-          e.stopPropagation();
-          i = Math.min(post.media.length-1, i+1);
-          track.style.transform = `translateX(-${i*100}%)`;
-        };
-
-      } else {
-        div.innerHTML = `<img src="${post.media[0]}">`;
-      }
-
-      grid.appendChild(div);
-
-    });
-
-  } catch(e){
-    document.body.innerHTML = "❌ Erreur chargement API";
-    console.error(e);
+// 🔥 DONNÉES LOCALES (comme avant)
+const posts = [
+  {
+    title: "Post 1",
+    media: ["https://picsum.photos/300?1"]
+  },
+  {
+    title: "Carousel",
+    media: [
+      "https://picsum.photos/300?2",
+      "https://picsum.photos/300?3",
+      "https://picsum.photos/300?4"
+    ]
+  },
+  {
+    title: "Post 3",
+    media: ["https://picsum.photos/300?5"]
+  },
+  {
+    title: "Post 4",
+    media: ["https://picsum.photos/300?6"]
+  },
+  {
+    title: "Post 5",
+    media: ["https://picsum.photos/300?7"]
+  },
+  {
+    title: "Post 6",
+    media: ["https://picsum.photos/300?8"]
   }
+];
 
+function render(){
+
+  const grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  posts.forEach(post => {
+
+    const div = document.createElement("div");
+    div.className = "post";
+
+    // 👉 CAROUSEL
+    if(post.media.length > 1){
+
+      div.innerHTML = `
+        <div class="carousel">
+          <div class="track">
+            ${post.media.map(m => `<img src="${m}">`).join("")}
+          </div>
+          <button class="btn left">‹</button>
+          <button class="btn right">›</button>
+        </div>
+      `;
+
+      const track = div.querySelector(".track");
+      const left = div.querySelector(".left");
+      const right = div.querySelector(".right");
+
+      let index = 0;
+
+      left.onclick = () => {
+        index = Math.max(0, index - 1);
+        track.style.transform = `translateX(-${index * 100}%)`;
+      };
+
+      right.onclick = () => {
+        index = Math.min(post.media.length - 1, index + 1);
+        track.style.transform = `translateX(-${index * 100}%)`;
+      };
+
+    } else {
+      div.innerHTML = `<img src="${post.media[0]}">`;
+    }
+
+    grid.appendChild(div);
+  });
 }
 
-load();
+render();
 
 </script>
 
